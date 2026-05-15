@@ -1,0 +1,6 @@
+# Directory placeholder.
+# Populated by `python -m src.evaluate` with:
+#   - ablation_table.csv
+#   - classification_report.txt
+#   - confusion_matrix.png
+#   - failure_analysis.png
