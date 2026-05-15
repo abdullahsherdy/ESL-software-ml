@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # ESL Real-Time Sign Language Recognition
 
 **Graduation Project · Team of 5 · 4 Phases · ~87 hours**
@@ -325,3 +326,6 @@ Run 48 hours before the viva:
 - The web WebSocket does not send a heartbeat ping. Long idle sessions over
   ngrok or corporate proxies may be closed; the frontend auto-reconnects on
   `onclose` with exponential backoff.
+=======
+# ESL-software-ml
+>>>>>>> c9f9a0f7cad517d1710d0174062ba5202b8537a7

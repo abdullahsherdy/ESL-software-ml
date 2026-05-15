@@ -6,12 +6,15 @@ __pycache__/
 # C extensions
 *.so
 
+<<<<<<< HEAD
 #
 .cursor/
 .claude/
 .git/
 
 
+=======
+>>>>>>> c9f9a0f7cad517d1710d0174062ba5202b8537a7
 # Distribution / packaging
 .Python
 build/
@@ -221,4 +224,8 @@ marimo/_lsp/
 __marimo__/
 
 # Streamlit
+<<<<<<< HEAD
 .streamlit/secrets.toml
+=======
+.streamlit/secrets.toml
+>>>>>>> c9f9a0f7cad517d1710d0174062ba5202b8537a7
