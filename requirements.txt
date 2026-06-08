@@ -6,13 +6,14 @@
 # GPU is NOT required - all inference runs on CPU.
 
 # -- Core ML -----------------------------------------------------------
-tensorflow>=2.20            # Keras 3 bundled; Python 3.13 compat
+tensorflow>=2.13,<=2.18          # pin 2.18.0 for project venv; TF 2.16+ needs tf-keras for DeepFace
+tf-keras                          # required by retina-face / DeepFace when using TF 2.16+
 numpy>=1.26
 scipy>=1.11
 
 # -- Computer Vision ---------------------------------------------------
 opencv-python>=4.8
-mediapipe>=0.10.30         # tasks API (HolisticLandmarker); solutions removed in 0.10.30+
+mediapipe>=0.10.30,<0.11   # HolisticLandmarker tasks API; 0.10.9–0.10.21 crash on partial hand detect
 
 # -- Emotion Detection -------------------------------------------------
 deepface>=0.0.89,<0.1       # wraps VGG-Face, FaceNet etc.; install triggers model downloads

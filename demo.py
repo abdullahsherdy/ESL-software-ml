@@ -26,15 +26,15 @@ from collections import deque
 import cv2
 import numpy as np
 
-# ── Conditional MediaPipe import for drawing ──────────────────────────────────
-try:
-    import mediapipe as mp
-    _MP_DRAWING       = mp.solutions.drawing_utils
-    _MP_DRAWING_STYLES = mp.solutions.drawing_styles
-    _MP_HOLISTIC      = mp.solutions.holistic
-    _HAS_MP = True
-except ImportError:
-    _HAS_MP = False
+# Hand skeleton edges (MediaPipe 0.10.30+ removed mp.solutions drawing_utils)
+HAND_CONNECTIONS = [
+    (0, 1), (1, 2), (2, 3), (3, 4),
+    (0, 5), (5, 6), (6, 7), (7, 8),
+    (0, 9), (9, 10), (10, 11), (11, 12),
+    (0, 13), (13, 14), (14, 15), (15, 16),
+    (0, 17), (17, 18), (18, 19), (19, 20),
+    (5, 9), (9, 13), (13, 17),
+]
 
 from src.inference import (
     load_model,
@@ -252,25 +252,23 @@ def _draw_debug_panel(frame, probs: dict):
         cv2.putText(frame, f"{lbl[:12]:12s} {p:.2f}",
                     (panel_x, y), FONT, 0.38, C_WHITE, 1)
 
+def _draw_hand_skeleton(frame, landmarks, w: int, h: int) -> None:
+    pts = [(int(lm.x * w), int(lm.y * h)) for lm in landmarks]
+    for a, b in HAND_CONNECTIONS:
+        cv2.line(frame, pts[a], pts[b], C_GREEN, 2)
+    for x, y in pts:
+        cv2.circle(frame, (x, y), 3, (0, 0, 255), -1)
+
+
 def draw_landmarks(frame, mediapipe_results):
-    """Overlay the MediaPipe Holistic skeleton on the frame."""
-    if not _HAS_MP or mediapipe_results is None:
+    """Overlay hand landmarks from HolisticLandmarker (tasks API)."""
+    if mediapipe_results is None:
         return
-    # Hands
+    h, w = frame.shape[:2]
     if mediapipe_results.left_hand_landmarks:
-        _MP_DRAWING.draw_landmarks(
-            frame, mediapipe_results.left_hand_landmarks,
-            _MP_HOLISTIC.HAND_CONNECTIONS,
-            _MP_DRAWING_STYLES.get_default_hand_landmarks_style(),
-            _MP_DRAWING_STYLES.get_default_hand_connections_style(),
-        )
+        _draw_hand_skeleton(frame, mediapipe_results.left_hand_landmarks, w, h)
     if mediapipe_results.right_hand_landmarks:
-        _MP_DRAWING.draw_landmarks(
-            frame, mediapipe_results.right_hand_landmarks,
-            _MP_HOLISTIC.HAND_CONNECTIONS,
-            _MP_DRAWING_STYLES.get_default_hand_landmarks_style(),
-            _MP_DRAWING_STYLES.get_default_hand_connections_style(),
-        )
+        _draw_hand_skeleton(frame, mediapipe_results.right_hand_landmarks, w, h)
 
 # ═══════════════════════════════════════════════════════════════════════════════
 #  Main application
@@ -352,7 +350,7 @@ def run(source):
         # Holistic results are in normalised [0,1] coords, so MediaPipe's
         # draw helpers scale them to whatever target frame we pass.
         disp_frame = frame.copy()
-        if show_landmarks and _HAS_MP and mp_results is not None:
+        if show_landmarks and mp_results is not None:
             draw_landmarks(disp_frame, mp_results)
 
         # Draw status bar
@@ -469,7 +467,7 @@ def run_sprint(source):
         fps = 1.0 / (sum(fps_deque) / len(fps_deque)) if fps_deque else 0.0
 
         disp = frame.copy()
-        if show_landmarks and _HAS_MP:
+        if show_landmarks:
             mp_results = get_last_mp_results()
             if mp_results is not None:
                 draw_landmarks(disp, mp_results)

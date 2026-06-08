@@ -97,7 +97,20 @@ async def websocket_endpoint(websocket: WebSocket):
                 }))
                 continue
 
-            lbl, conf, emotion = predict_frame(frame, cached_emotion="neutral")
+            try:
+                lbl, conf, emotion = predict_frame(frame, cached_emotion="neutral")
+            except Exception as exc:
+                print(f"[web] predict_frame error: {exc}")
+                await websocket.send_text(json.dumps({
+                    "label": "Error",
+                    "confidence": 0.0,
+                    "emotion": "neutral",
+                    "latency_ms": None,
+                    "fps_hint": None,
+                    "error": "inference_failed",
+                }))
+                continue
+
             latency_ms = (time.perf_counter() - t0) * 1000.0
             await websocket.send_text(json.dumps({
                 "label":      lbl if lbl not in ("No hand detected",) else lbl,

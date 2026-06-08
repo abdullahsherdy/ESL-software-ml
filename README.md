@@ -281,6 +281,7 @@ with open("artifacts/model_v2.tflite", "wb") as f:
 
 - DeepFace downloads model weights (~500MB) on first run — requires internet
 
-- `mediapipe==0.10.20` is pinned; newer versions removed `mp.solutions.holistic`
+- Web/desktop crash when showing hands (`The packet is empty`) → upgrade MediaPipe: `pip install "mediapipe>=0.10.30,<0.11"` (venv had 0.10.14; use 0.10.30+)
+- `mp.solutions.holistic` was removed in MediaPipe 0.10.30+; this project uses `HolisticLandmarker` (tasks API) instead
 
 

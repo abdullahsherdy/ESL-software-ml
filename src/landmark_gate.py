@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from src.inference import get_raw_landmarks
+from src.inference import VELOCITY_THRESHOLD, get_raw_landmarks
 
 _lm_prev: np.ndarray | None = None
 
