@@ -9,6 +9,7 @@ Usage:
 """
 import sys
 import os
+from io import BytesIO
 
 def promote(version: str):
     from huggingface_hub import HfApi
@@ -34,7 +35,7 @@ def promote(version: str):
     )
     print(f"Updating current.txt -> {version}")
     api.upload_file(
-        path_or_fileobj=version.encode(),
+        path_or_fileobj=BytesIO(version.encode()),
         path_in_repo="current.txt",
         repo_id=repo_id,
         repo_type="model",

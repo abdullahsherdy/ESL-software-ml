@@ -181,6 +181,16 @@ def draw_rounded_rect(img, x1, y1, x2, y2, colour, radius=8, alpha=0.55):
     cv2.rectangle(overlay, (x1, y1), (x2, y2), colour, -1)
     cv2.addWeighted(overlay, alpha, img, 1 - alpha, 0, img)
 
+def draw_sentence_bar(frame, words):
+    """Draw accumulated committed words as a sentence at the top of the frame."""
+    if not words:
+        return
+    h, w = frame.shape[:2]
+    text = "  ".join(words)
+    draw_rounded_rect(frame, 0, 0, w, 38, C_OVERLAY, radius=0, alpha=0.75)
+    cv2.putText(frame, text, (10, 25), FONT, 0.65, C_WHITE, 2, cv2.LINE_AA)
+
+
 def draw_status_bar(frame, label: str, conf: float, emotion: str,
                     fps: float, debug_probs: dict | None = None,
                     show_debug: bool = False):
@@ -306,7 +316,7 @@ def run(source):
     )
 
     t1.start(); t2.start(); t3.start()
-    print("[app] All threads started. Press Q to quit, L to toggle landmarks, D for debug.")
+    print("[app] All threads started. Press Q to quit, L landmarks, D debug, C clear sentence.")
 
     # ── Display state ──────────────────────────────────────────────────────
     show_landmarks  = True
@@ -315,6 +325,8 @@ def run(source):
     last_label      = "Waiting…"
     last_conf       = 0.0
     last_emotion    = "neutral"
+    sentence_words  = deque(maxlen=8)
+    last_committed  = None
     t_last          = time.perf_counter()
 
     cv2.namedWindow(WIN_NAME, cv2.WINDOW_NORMAL)
@@ -338,6 +350,9 @@ def run(source):
             last_label   = label
             last_conf    = conf
             last_emotion = emotion
+            if label not in STATE_COLOURS and label != last_committed:
+                sentence_words.append(label)
+                last_committed = label
 
         # FPS
         now = time.perf_counter()
@@ -353,7 +368,7 @@ def run(source):
         if show_landmarks and mp_results is not None:
             draw_landmarks(disp_frame, mp_results)
 
-        # Draw status bar
+        draw_sentence_bar(disp_frame, sentence_words)
         draw_status_bar(
             disp_frame, last_label, last_conf, last_emotion, fps,
             show_debug=show_debug,
@@ -376,6 +391,10 @@ def run(source):
             reset_window()
             last_label = "Ready"
             print("[app] Prediction window reset.")
+        elif key == ord('c'):
+            sentence_words.clear()
+            last_committed = None
+            print("[app] Sentence cleared.")
 
     # ── Clean shutdown ──────────────────────────────────────────────────────
     stop_event.set()
@@ -398,10 +417,10 @@ def _sprint_smooth(window: deque, lbl: str, conf: float) -> tuple[str | None, fl
     if len(window) < SPRINT_WINDOW_SIZE:
         return None, 0.0
     labels = [p[0] for p in window]
-    confs = [p[1] for p in window]
     top = max(set(labels), key=labels.count)
-    if labels.count(top) >= SPRINT_MIN_VOTES and np.mean(confs) >= SPRINT_MIN_CONFIDENCE:
-        return top, float(np.mean(confs))
+    top_confs = [c for l, c in window if l == top]
+    if labels.count(top) >= SPRINT_MIN_VOTES and np.mean(top_confs) >= SPRINT_MIN_CONFIDENCE:
+        return top, float(np.mean(top_confs))
     return None, 0.0
 
 
@@ -452,6 +471,7 @@ def run_sprint(source):
         else:
             committed, avg_conf = _sprint_smooth(pred_window, lbl, conf)
             if committed:
+                pred_window.clear()
                 status = f"Sign: {committed}  ({avg_conf:.0%})"
                 colour = C_GREEN
             elif conf < SPRINT_MIN_CONFIDENCE:

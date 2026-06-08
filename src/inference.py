@@ -48,7 +48,8 @@ def _default_label_path() -> str:
 VELOCITY_THRESHOLD = 0.02   # tune empirically; increase if too many false activations
 WINDOW_SIZE        = 5
 MIN_VOTES          = 3
-MIN_CONFIDENCE     = 0.65
+MIN_CONFIDENCE     = 0.60   # checked against top-label confs only (not all confs)
+COMMIT_COOLDOWN    = 8      # compute-frames to wait after each commit (prevents same-sign re-trigger)
 DEEPFACE_INTERVAL  = 5      # run DeepFace every K frames (Thread 3)
 
 # Semantic confidence modifiers for sign/emotion conflicts
@@ -63,8 +64,10 @@ _model        = None
 _idx2label    = None
 _holistic     = None
 _lm_prev      = None
-_pred_window  = deque(maxlen=WINDOW_SIZE)
-_frame_ts_ms  = 0
+_pred_window        = deque(maxlen=WINDOW_SIZE)
+_cooldown_remaining = 0
+_frame_ts_ms        = 0
+_frame_ts_lock      = threading.Lock()
 
 _cached_emotion = "neutral"
 _emotion_lock   = threading.Lock()
@@ -250,6 +253,15 @@ def predict_frame(
         _cached_prediction = result
         return result
 
+    # Post-commit cooldown: don't accumulate until COMMIT_COOLDOWN active frames
+    # have passed. Prevents the same sign immediately re-triggering after commit.
+    global _cooldown_remaining
+    if _cooldown_remaining > 0:
+        _cooldown_remaining -= 1
+        result = ("Detecting", 0.0, emotion_str)
+        _cached_prediction = result
+        return result
+
     norm_lm = _normalize(raw_lm)
     features = np.concatenate(
         [norm_lm, _emotion_to_onehot(emotion_str)]
@@ -263,12 +275,16 @@ def predict_frame(
     _pred_window.append((label, confidence))
     if len(_pred_window) == WINDOW_SIZE:
         labels = [p[0] for p in _pred_window]
-        confs = [p[1] for p in _pred_window]
         top = max(set(labels), key=labels.count)
-        if labels.count(top) >= MIN_VOTES and np.mean(confs) >= MIN_CONFIDENCE:
+        # Use only the top-label's confidences for the threshold check.
+        # Using all confs (old bug) caused noise frames with low confidence to
+        # drag the mean below 0.60, preventing commit even when 3+ votes agreed.
+        top_confs = [c for lbl, c in _pred_window if lbl == top]
+        if labels.count(top) >= MIN_VOTES and np.mean(top_confs) >= MIN_CONFIDENCE:
             mod = EMOTION_CONFLICTS.get((top.lower(), emotion_str.lower()), 1.0)
             _pred_window.clear()
-            result = (top, float(np.mean(confs)) * mod, emotion_str)
+            _cooldown_remaining = COMMIT_COOLDOWN
+            result = (top, float(np.mean(top_confs)) * mod, emotion_str)
             _cached_prediction = result
             return result
 
@@ -314,10 +330,11 @@ def get_last_mp_results():
 
 def reset_window() -> None:
     """Clear prediction window — call when the user explicitly resets."""
-    global _frame_counter
+    global _frame_counter, _cooldown_remaining
     _pred_window.clear()
     reset_activation_gate()
-    _frame_counter = 0  # Reset frame counter when window resets
+    _frame_counter = 0
+    _cooldown_remaining = 0
 
 
 def set_frame_skip(skip_rate: int) -> None:
@@ -354,8 +371,10 @@ def _extract_landmarks(frame: np.ndarray) -> np.ndarray:
     global _last_mp_results, _frame_ts_ms
     rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     mp_image = _mp.Image(image_format=_mp.ImageFormat.SRGB, data=rgb)
-    _frame_ts_ms += 1
-    results = _holistic.detect_for_video(mp_image, _frame_ts_ms)
+    with _frame_ts_lock:
+        _frame_ts_ms += 1
+        ts = _frame_ts_ms
+    results = _holistic.detect_for_video(mp_image, ts)
     _last_mp_results = results
     feat = []
 

@@ -4,11 +4,7 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
     libglib2.0-0 libsm6 libxext6 libxrender-dev \
-<<<<<<< HEAD
     libgl1-mesa-glx \
-=======
-    libgl1 \
->>>>>>> e5aefbe088c4474541cbf6fe9cc074adc2e2b941
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .

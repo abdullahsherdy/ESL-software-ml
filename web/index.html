@@ -29,6 +29,18 @@
     .bar > div { height:100%; background:#3dd68c; width:0%; transition: width .12s; }
     .emo { font-size:.85rem; color:#a0a8c0; margin-top:6px; }
     .conn { font-size:.75rem; color:#6b7280; margin-top:8px; }
+    .sentence-box {
+      margin-top:10px; padding:10px 12px; border-radius:8px;
+      background:#0d0f1a; border:1px solid #2a2d40;
+      font-size:1.15rem; font-weight:600; color:#3dd68c;
+      letter-spacing:.04em; min-height:2.4em; word-break:break-word;
+    }
+    .sentence-label { font-size:.72rem; color:#6b7280; margin-bottom:4px; }
+    .clear-btn {
+      margin-top:8px; padding:5px 14px; border-radius:6px; border:none;
+      background:#252838; color:#a0a8c0; cursor:pointer; font-size:.8rem;
+    }
+    .clear-btn:hover { background:#2f3347; }
   </style>
 </head>
 <body>
@@ -43,6 +55,9 @@
       <div class="status" id="status">Connecting…</div>
       <div class="bar"><div id="barfill"></div></div>
       <div class="emo" id="emotion">Emotion: —</div>
+      <div class="sentence-label">Recognised words</div>
+      <div class="sentence-box" id="sentence">—</div>
+      <button class="clear-btn" id="clearBtn">Clear sentence</button>
       <div class="conn" id="conn">WebSocket: —</div>
     </div>
   </div>
@@ -55,6 +70,14 @@
   const bar = document.getElementById('barfill');
   const emoEl = document.getElementById('emotion');
   const connEl = document.getElementById('conn');
+  const sentenceEl = document.getElementById('sentence');
+  const clearBtn = document.getElementById('clearBtn');
+
+  const META = new Set(['No hand detected','__no_hands__','Ready','Detecting','Error','']);
+  let committedWords = [];
+  let lastCommitted = null;
+
+  clearBtn.onclick = () => { committedWords = []; lastCommitted = null; sentenceEl.textContent = '—'; };
 
   const wsUrl = (location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host + '/ws';
   let ws = null;
@@ -93,8 +116,15 @@
         setStatus('Detecting…', 'warn');
       else if (lbl === 'Error')
         setStatus('Server error — check logs', 'err');
-      else
+      else {
         setStatus('Sign: ' + lbl + '  (' + (c * 100).toFixed(0) + '%)', 'ok');
+        if (!META.has(lbl) && lbl !== lastCommitted) {
+          committedWords.push(lbl);
+          if (committedWords.length > 10) committedWords.shift();
+          lastCommitted = lbl;
+          sentenceEl.textContent = committedWords.join('  ');
+        }
+      }
     };
     ws.onclose = () => {
       connEl.textContent = 'WebSocket: disconnected — retry in 2s';

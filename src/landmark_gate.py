@@ -27,7 +27,7 @@ def activation_gate(feat_126: np.ndarray) -> bool:
     global _lm_prev
     if _lm_prev is None:
         _lm_prev = feat_126.copy()
-        return True
+        return False
     velocity = float(np.linalg.norm(feat_126 - _lm_prev))
     _lm_prev = feat_126.copy()
     return velocity >= VELOCITY_THRESHOLD
