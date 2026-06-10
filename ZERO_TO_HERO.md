@@ -878,7 +878,7 @@ git push
 **"Why landmark-based instead of CNN on raw images?"**
 > With approximately 10 videos per sign class, a CNN would overfit severely — it needs thousands of images. MediaPipe gives us 156 clean numbers representing every hand joint position, stripped of background and lighting variation. Our MLP is 973KB, trains in minutes, and runs at real-time on CPU. A CNN would be 14+MB, need a GPU, and still perform worse at this dataset size.
 
-**"What is your model accuracy and how did you measure it?"**
+**"What is model accuracy and how did you measure it?"**
 > Model v2 achieves 91.74% accuracy and 0.906 macro F1 on a held-out validation set of 121 samples across 47 sign classes. We split at the video level — 80% of videos per class to training, 20% to validation. No frame from a validation video appears in training, including augmented versions.
 
 **"What is the data leakage bug you fixed?"**
@@ -890,13 +890,13 @@ git push
 **"Why LSTM for some signs and MLP for others?"**
 > Signs fall into two categories: static (where meaning comes from hand shape alone — e.g., letters) and dynamic (where meaning comes from motion trajectory — e.g., directional signs). An MLP classifies a single normalised frame and works well for static signs. An LSTM reads 30 consecutive frames and captures the motion arc that distinguishes dynamic signs. Our ablation table shows LSTM (90.91%) is competitive with MLP (91.74%) overall, with LSTM specifically outperforming on motion-dependent signs.
 
-**"Why is your emotion feature not improving accuracy?"**
+**"Why is emotion feature not improving accuracy?"**
 > We trained all models with `neutral` as the emotion label for every training sample because our dataset has no emotion ground-truth annotations. The model learned to mostly ignore the 7-dimensional emotion input. The architecture supports it — the slot is in the input — but the model hasn't learned to use variation there. The upgrade path: collect emotion-labelled signing data, retrain model_v4. Zero architecture changes needed.
 
-**"How does your sliding window prevent false positives?"**
+**"How does sliding window prevent false positives?"**
 > We require 3 of the last 5 consecutive inference frames to agree on the same label AND the mean confidence of those agreeing frames must exceed 0.60. After committing a word, we enforce an 8-frame cooldown (approximately 0.8 seconds) where the window does not accumulate, preventing the same sign from immediately re-triggering. A single misclassified frame cannot trigger a commit.
 
-**"What are your limitations?"**
+**"What are limitations?"**
 > Three main limitations: (1) **Single signer in training** — the model has seen signs from one person, so accuracy drops on unseen signers with different hand proportions or signing style; (2) **47 of 55 sign vocabulary** — our MVP covers 47 Egyptian signs; (3) **Isolated sign recognition only** — we classify individual words, not connected sentences. For connected speech you would need a language model on top of our sign classifier. All three are documented with a clear improvement roadmap.
 
 **"Why not a native mobile app?"**
@@ -905,7 +905,7 @@ git push
 **"What is TFLite and why use it?"**
 > TFLite (TensorFlow Lite) is a compiled, quantized format of a Keras model that runs on mobile devices without Python or TensorFlow. Our 973KB Keras model converts to ~400KB TFLite with dynamic quantization. The mobile app runs the entire pipeline on-device — MediaPipe for landmark extraction, normalization, and TFLite inference — without any network connection. This is faster (2ms model inference), more reliable (works offline), and more scalable than the WebSocket server approach.
 
-**"How would you scale this to all 55 signs and multiple signers?"**
+**"How would scale this to all 55 signs and multiple signers?"**
 > The architecture needs no changes — only the training data. Scaling requires: (1) recording data from 4+ signers (adds ±15–25% accuracy on unseen people), (2) recording all 55 sign classes with 10+ videos each, (3) rerunning the Phase 1 Colab notebook, (4) running `scripts/promote_model.py` to push the new model. The CI/CD pipeline automatically rebuilds the Railway container with the new model — zero downtime.
 
 ---

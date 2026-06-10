@@ -40,19 +40,21 @@ Communication between Deaf/hard-of-hearing users and hearing communities often d
 ### High-level flow (Full mode)
 
 ```
-┌─────────────┐     frame_queue      ┌──────────────────┐     result_queue     ┌─────────────────┐
+
+┌─────────────┐     frame_queue     ┌──────────────────┐     result_queue    ┌─────────────────┐
 │  Thread 1   │ ──────────────────► │    Thread 2      │ ──────────────────► │  Main Thread    │
 │  Capture    │   (maxsize=2)       │    Inference     │   (maxsize=2)       │  Display (UI)   │
-│  cv2.read   │                     │  predict_frame() │                     │  cv2.imshow    │
+│  cv2.read   │                     │  predict_frame() │                     │  cv2.imshow     │
 └─────────────┘                     └────────┬─────────┘                     └────────┬────────┘
                                              │                                        │
-                                             │ MediaPipe Holistic                   │ latest_frame_ref
-                                             │ Keras MLP (model_v2)                 │
+                                             │ MediaPipe Holistic                     │ latest_frame_ref
+                                             │ Keras MLP (model_v2)                   │
                                              ▼                                        ▼
-                                    ┌──────────────────┐                     ┌─────────────────┐
+                                    ┌──────────────────┐                    ┌─────────────────┐
                                     │  _cached_emotion │ ◄── Thread 3 ──────│  Emotion Thread │
                                     │  (read by T2)    │     DeepFace       │  update_emotion │
-                                    └──────────────────┘     every 5 polls   └─────────────────┘
+                                    └──────────────────┘     every 5 polls  └─────────────────┘
+
 ```
 
 ### System layers
