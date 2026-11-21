@@ -68,11 +68,10 @@ Everything runs **locally**, so it is fast, private, and works without an intern
 
 ## Screenshots
 
-> Add your app screenshots to a `docs/screenshots/` folder and update the paths below.
 
 | Home / Camera | Live Recognition | Result + Emotion |
 |:---:|:---:|:---:|
-| ![Home](docs/screenshots/home.png) | ![Live](docs/screenshots/live.png) | ![Result](docs/screenshots/result.png) |
+|  |  | |
 
 ---
 
@@ -275,11 +274,11 @@ ESL-software-ml/
 
 | Name | Role |
 |---|---|
-| Abdullah Sherdy | ML / Software |
-| *Add teammate* | *Role* |
+| Abdullah Sherdy | |
+| *Sara Yasser* | |
 
-**Supervisor:** *Add supervisor name*
-**University / Faculty:** *Add details*
+**Supervisor:** *Abdullah Sherdy*
+**University / Faculty:** *Helwan University *
 
 ---
 
