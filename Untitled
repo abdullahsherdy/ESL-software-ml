@@ -1,0 +1,20 @@
+C:\Users\Mariam Yasser\ESL-software-ml> git add .
+warning: in the working copy of 'README (2).md', LF will be replaced by CRLF the next time Git touches it
+
+C:\Users\Mariam Yasser\ESL-software-ml>git commit -m "Update README"
+[main 0d039d1] Update README
+ 1 file changed, 296 insertions(+)
+ create mode 100644 README (2).md
+
+C:\Users\Mariam Yasser\ESL-software-ml>git push origin main
+Enumerating objects: 4, done.
+Counting objects: 100% (4/4), done.
+Delta compression using up to 16 threads
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 4.16 KiB | 2.08 MiB/s, done.
+Total 3 (delta 1), reused 0 (delta 0), pack-reused 0
+remote: Resolving deltas: 100% (1/1), completed with 1 local object.
+To https://github.com/abdullahsherdy/ESL-software-ml.git
+   91b97cf..0d039d1  main -> main
+
+C:\Users\Mariam Yasser\ESL-software-ml>

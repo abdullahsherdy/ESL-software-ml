@@ -4,7 +4,7 @@
 
 ![Hero screenshot](docs/screenshots/hero.png)
 
-> [ fill in: add a hero screenshot or a short GIF of the app recognizing a sign ]
+> [  add a hero screenshot or a short GIF of the app recognizing a sign ]
 
 ---
 
@@ -18,8 +18,8 @@
 | **Internet needed** | No. Everything runs on your own computer |
 | **Supported signs** | 56 |
 | **Status** | Graduation project, working prototype |
-| **Version** | [ fill in ] |
-| **Team** | [ fill in ] |
+| **Version** | 1 |
+| **Team** |  |
 
 ---
 
