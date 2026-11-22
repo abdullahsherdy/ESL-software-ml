@@ -198,7 +198,7 @@ We want to be clear about what the product can and cannot do today:
 - Hands must be visible to the camera. If they leave the frame, no sign is detected.
 - Poor lighting, a busy background or fast movement can reduce accuracy.
 - Emotion detection works only in the desktop full mode, and the first run downloads about 500 MB.
-- The signs in this version were learned from a limited dataset. [ fill in: number of signers and videos ]
+- The signs in this version were learned from a limited dataset. 
 
 ---
 
