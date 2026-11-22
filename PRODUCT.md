@@ -217,7 +217,7 @@ Yes, through the web version in your phone's browser, with the computer and phon
 No. It is a communication aid for simple, everyday signs. Interpreters are still essential for complex or sensitive conversations such as medical or legal ones.
 
 **Can it learn new signs?**
-Yes, but it needs new training data and retraining. [ fill in: describe the process if you plan to support it ]
+Yes, but it needs new training data and retraining. 
 
 **Can other apps use it?**
 Yes. Developers can call `predict_frame()` and receive the sign, confidence and emotion.
